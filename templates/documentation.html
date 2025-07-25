@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Documentation - ML Forecasting API</title>
+    <title>API Documentation - Fish Growth Forecasting API</title>
     <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
@@ -13,7 +13,7 @@
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="/">
                 <i data-feather="trending-up" class="me-2"></i>
-                ML Forecasting API
+                Fish Growth Forecasting API
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -70,11 +70,11 @@
                     <div class="card border-0 bg-dark">
                         <div class="card-body">
                             <p class="lead">
-                                The ML Forecasting API provides powerful machine learning-based time series forecasting capabilities through a simple REST interface.
+                                The Fish Growth Forecasting API provides specialized machine learning-powered fish growth prediction capabilities for aquaculture and fish farming operations.
                             </p>
                             <p>
-                                This API is designed for developers who need to integrate forecasting functionality into their applications, 
-                                offering endpoints for single and batch predictions with comprehensive error handling and validation.
+                                This API is designed for fish farming applications that need to predict growth timelines until target weights are reached,
+                                offering endpoints for single and batch predictions with comprehensive validation for fish farming data.
                             </p>
                             <div class="alert alert-info">
                                 <i data-feather="info" class="me-2"></i>
@@ -154,10 +154,12 @@
                                 <pre class="bg-secondary p-3 rounded"><code>{
   "success": true,
   "data": {
-    "model_type": "Linear Regression with Time Features",
+    "model_type": "Fish Growth Forecasting Model (Placeholder)",
     "is_trained": true,
-    "features": ["trend", "sin_seasonal", "cos_seasonal", "month", "day_of_week"],
-    "model_path": "data/sample_model.pkl"
+    "input_shape": "(batch_size, 7, 19)",
+    "output_type": "Sequential weight predictions until target",
+    "model_path": "data/fish_model.pkl",
+    "note": "This is a placeholder implementation. Replace with your actual trained model."
   },
   "timestamp": "2024-01-01T12:00:00.000Z"
 }</code></pre>
@@ -181,13 +183,22 @@
                             </div>
                             <div class="card-body">
                                 <p><strong>Endpoint:</strong> <code>/api/forecast</code></p>
-                                <p>Generate forecasting predictions for a specified time period.</p>
+                                <p>Generate fish growth predictions until target weight is reached.</p>
                                 
                                 <h6>Request Body:</h6>
                                 <pre class="bg-secondary p-3 rounded"><code>{
-  "start_date": "2024-01-01",  // Optional, defaults to today
-  "periods": 30,               // Optional, defaults to 30 (max 365)
-  "confidence_level": 0.95     // Optional, defaults to 0.95
+  "target_weight": 1.2,        // Target weight in kg
+  "sequence": [                // Array of daily fish data (min 7 days)
+    {
+      "date": "2024-01-01",
+      "fish_type": "Nila",      // Nila, Mujair, or Gurame
+      "start_weight": 0.22,     // Initial weight in kg
+      "avg_weight": 0.26,       // Average weight in kg (excluded from features)
+      "week_age": 1.0,          // Week age
+      "pool_type": "A1"         // Optional: A1-A10 (defaults to A1)
+    }
+    // ... at least 7 days of data required
+  ]
 }</code></pre>
 
                                 <h6>Response:</h6>
@@ -196,27 +207,39 @@
   "data": {
     "predictions": [
       {
-        "date": "2024-01-01",
-        "predicted_value": 125.67,
-        "period": 1
+        "day": 1,
+        "date": "2025-07-26",
+        "predicted_weight": 0.8203,
+        "days_to_target": null
+      },
+      {
+        "day": 23,
+        "date": "2025-08-17",
+        "predicted_weight": 1.2084,
+        "days_to_target": 23
       }
-      // ... more predictions
+      // ... more daily predictions until target
     ],
     "summary": {
-      "total_periods": 30,
-      "min_value": 120.45,
-      "max_value": 135.89,
-      "mean_value": 128.12,
-      "start_date": "2024-01-01",
-      "end_date": "2024-01-30"
+      "days_to_reach_target": 23,
+      "target_weight": 1.2,
+      "current_weight": 0.8,
+      "final_predicted_weight": 1.2084,
+      "target_reached": true,
+      "total_predictions": 23
     },
     "metadata": {
-      "model_type": "Linear Regression Forecast",
+      "model_type": "Fish Growth Forecast",
       "generated_at": "2024-01-01T12:00:00.000Z",
-      "parameters": {
-        "start_date": "2024-01-01",
-        "periods": 30,
-        "confidence_level": 0.95
+      "input_data": {
+        "target_weight": 1.2,
+        "sequence_length": 7,
+        "sequences_shape": [1, 7, 19],
+        "feature_columns": ["week_age", "start_weight(kg)", "day", "month", ...]
+      },
+      "model_info": {
+        "model_type": "Placeholder Fish Growth Model",
+        "note": "Replace this with your actual trained model"
       }
     }
   }
@@ -243,18 +266,24 @@
                             </div>
                             <div class="card-body">
                                 <p><strong>Endpoint:</strong> <code>/api/forecast/batch</code></p>
-                                <p>Generate multiple forecasts in a single request (max 10 requests per batch).</p>
+                                <p>Generate multiple fish growth forecasts in a single request (max 10 requests per batch).</p>
                                 
                                 <h6>Request Body:</h6>
                                 <pre class="bg-secondary p-3 rounded"><code>{
   "requests": [
     {
-      "start_date": "2024-01-01",
-      "periods": 15
+      "target_weight": 1.0,
+      "sequence": [
+        {"date": "2024-01-01", "fish_type": "Nila", "start_weight": 0.2, "avg_weight": 0.25, "week_age": 1.0},
+        // ... more sequence data
+      ]
     },
     {
-      "start_date": "2024-02-01",
-      "periods": 30
+      "target_weight": 1.5,
+      "sequence": [
+        {"date": "2024-01-01", "fish_type": "Gurame", "start_weight": 0.15, "avg_weight": 0.20, "week_age": 2.0, "pool_type": "A5"},
+        // ... more sequence data
+      ]
     }
   ]
 }</code></pre>
@@ -267,12 +296,26 @@
       {
         "request_id": 0,
         "success": true,
-        "data": [/* predictions array */]
+        "data": {
+          "predictions": [/* fish growth predictions array */],
+          "summary": {
+            "days_to_reach_target": 20,
+            "target_weight": 1.0,
+            "target_reached": true
+          }
+        }
       },
       {
         "request_id": 1,
         "success": true,
-        "data": [/* predictions array */]
+        "data": {
+          "predictions": [/* fish growth predictions array */],
+          "summary": {
+            "days_to_reach_target": 35,
+            "target_weight": 1.5,
+            "target_reached": true
+          }
+        }
       }
     ],
     "total_requests": 2,
@@ -307,25 +350,51 @@
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    start_date: '2024-01-01',
-    periods: 30
+    target_weight: 1.2,
+    sequence: [
+      {
+        date: "2024-01-01",
+        fish_type: "Nila",
+        start_weight: 0.22,
+        avg_weight: 0.26,
+        week_age: 1.0
+      }
+      // ... more sequence data (minimum 7 days)
+    ]
   })
 });
 
 const data = await response.json();
-console.log(data.data.predictions);</code></pre>
+console.log(`Days to reach target: ${data.data.summary.days_to_reach_target}`);</code></pre>
                                 </div>
                                 <div class="col-md-6">
                                     <h5>Python (requests)</h5>
                                     <pre class="bg-secondary p-3 rounded"><code>import requests
 
-response = requests.post('/api/forecast', json={
-    'start_date': '2024-01-01',
-    'periods': 30
-})
+fish_data = {
+    'target_weight': 1.2,
+    'sequence': [
+        {
+            'date': '2024-01-01',
+            'fish_type': 'Nila',
+            'start_weight': 0.22,
+            'avg_weight': 0.26,
+            'week_age': 1.0,
+            'pool_type': 'A1'
+        }
+        # ... more sequence data (minimum 7 days)
+    ]
+}
 
+response = requests.post('/api/forecast', json=fish_data)
 data = response.json()
-predictions = data['data']['predictions']</code></pre>
+
+if data['success']:
+    summary = data['data']['summary']
+    print(f"Days to reach {summary['target_weight']}kg: {summary['days_to_reach_target']}")
+    print(f"Target reached: {summary['target_reached']}")
+else:
+    print(f"Error: {data['error']}")</code></pre>
                                 </div>
                             </div>
                         </div>
@@ -395,7 +464,7 @@ predictions = data['data']['predictions']</code></pre>
 
     <footer class="border-top py-4 mt-5">
         <div class="container text-center text-muted">
-            <p>&copy; 2024 ML Forecasting API. Built with Flask, scikit-learn, and Bootstrap.</p>
+            <p>&copy; 2024 Fish Growth Forecasting API. Built with Flask, scikit-learn, and Bootstrap for aquaculture applications.</p>
         </div>
     </footer>
 
@@ -459,8 +528,16 @@ predictions = data['data']['predictions']</code></pre>
         
         function testForecastEndpoint() {
             const body = {
-                start_date: new Date().toISOString().split('T')[0],
-                periods: 7
+                target_weight: 1.2,
+                sequence: [
+                    {date: "2024-01-01", fish_type: "Nila", start_weight: 0.22, avg_weight: 0.26, week_age: 1.0},
+                    {date: "2024-01-02", fish_type: "Nila", start_weight: 0.22, avg_weight: 0.32, week_age: 1.0},
+                    {date: "2024-01-03", fish_type: "Nila", start_weight: 0.22, avg_weight: 0.40, week_age: 1.0},
+                    {date: "2024-01-04", fish_type: "Nila", start_weight: 0.22, avg_weight: 0.51, week_age: 1.0},
+                    {date: "2024-01-05", fish_type: "Nila", start_weight: 0.22, avg_weight: 0.60, week_age: 1.0},
+                    {date: "2024-01-06", fish_type: "Nila", start_weight: 0.22, avg_weight: 0.70, week_age: 1.0},
+                    {date: "2024-01-07", fish_type: "Nila", start_weight: 0.22, avg_weight: 0.80, week_age: 1.0}
+                ]
             };
             testEndpoint('/api/forecast', 'POST', body);
         }
@@ -469,12 +546,28 @@ predictions = data['data']['predictions']</code></pre>
             const body = {
                 requests: [
                     {
-                        start_date: new Date().toISOString().split('T')[0],
-                        periods: 5
+                        target_weight: 1.0,
+                        sequence: [
+                            {date: "2024-01-01", fish_type: "Nila", start_weight: 0.2, avg_weight: 0.25, week_age: 1.0},
+                            {date: "2024-01-02", fish_type: "Nila", start_weight: 0.2, avg_weight: 0.30, week_age: 1.0},
+                            {date: "2024-01-03", fish_type: "Nila", start_weight: 0.2, avg_weight: 0.35, week_age: 1.0},
+                            {date: "2024-01-04", fish_type: "Nila", start_weight: 0.2, avg_weight: 0.40, week_age: 1.0},
+                            {date: "2024-01-05", fish_type: "Nila", start_weight: 0.2, avg_weight: 0.45, week_age: 1.0},
+                            {date: "2024-01-06", fish_type: "Nila", start_weight: 0.2, avg_weight: 0.50, week_age: 1.0},
+                            {date: "2024-01-07", fish_type: "Nila", start_weight: 0.2, avg_weight: 0.55, week_age: 1.0}
+                        ]
                     },
                     {
-                        start_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                        periods: 10
+                        target_weight: 1.5,
+                        sequence: [
+                            {date: "2024-01-01", fish_type: "Gurame", start_weight: 0.15, avg_weight: 0.20, week_age: 2.0, pool_type: "A5"},
+                            {date: "2024-01-02", fish_type: "Gurame", start_weight: 0.15, avg_weight: 0.25, week_age: 2.0, pool_type: "A5"},
+                            {date: "2024-01-03", fish_type: "Gurame", start_weight: 0.15, avg_weight: 0.30, week_age: 2.0, pool_type: "A5"},
+                            {date: "2024-01-04", fish_type: "Gurame", start_weight: 0.15, avg_weight: 0.35, week_age: 2.0, pool_type: "A5"},
+                            {date: "2024-01-05", fish_type: "Gurame", start_weight: 0.15, avg_weight: 0.40, week_age: 2.0, pool_type: "A5"},
+                            {date: "2024-01-06", fish_type: "Gurame", start_weight: 0.15, avg_weight: 0.45, week_age: 2.0, pool_type: "A5"},
+                            {date: "2024-01-07", fish_type: "Gurame", start_weight: 0.15, avg_weight: 0.50, week_age: 2.0, pool_type: "A5"}
+                        ]
                     }
                 ]
             };
