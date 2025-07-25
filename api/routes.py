@@ -84,8 +84,25 @@ def model_info():
 def generate_forecast():
     """Generate forecast predictions"""
     try:
+        # Check if request has JSON data
+        if not request.is_json:
+            return jsonify({
+                'success': False,
+                'error': 'Content-Type must be application/json',
+                'status': 400
+            }), 400
+        
+        # Get JSON data
+        data = request.get_json()
+        if data is None:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid JSON data',
+                'status': 400
+            }), 400
+        
         # Validate request
-        validation_result = validate_forecast_request(request.json)
+        validation_result = validate_forecast_request(data)
         if not validation_result['valid']:
             return jsonify({
                 'success': False,
@@ -95,7 +112,6 @@ def generate_forecast():
             }), 400
         
         # Extract parameters
-        data = request.json
         target_weight = data.get('target_weight')
         sequence = data.get('sequence')
         
@@ -148,7 +164,23 @@ def generate_forecast():
 def batch_forecast():
     """Generate multiple forecasts in batch"""
     try:
-        data = request.json
+        # Check if request has JSON data
+        if not request.is_json:
+            return jsonify({
+                'success': False,
+                'error': 'Content-Type must be application/json',
+                'status': 400
+            }), 400
+        
+        # Get JSON data
+        data = request.get_json()
+        if data is None:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid JSON data',
+                'status': 400
+            }), 400
+        
         if not isinstance(data, dict) or 'requests' not in data:
             return jsonify({
                 'success': False,
