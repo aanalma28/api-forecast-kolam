@@ -17,6 +17,11 @@ def preprocess_input_data(data):
         # Convert sequence to DataFrame
         df = pd.DataFrame(sequence)
         
+        # Rename start_weight to match expected column name
+        if 'start_weight' in df.columns:
+            df['start_weight(kg)'] = df['start_weight']
+            df = df.drop(columns=['start_weight'])
+        
         # Add pool_type column (default to A1 if not provided)
         if 'pool_type' not in df.columns:
             df['pool_type'] = 'A1'
@@ -30,12 +35,15 @@ def preprocess_input_data(data):
         # Transform dates
         df = transform_date(df)
         
-        # Encode categorical variables
-        df = encode_categorical_features(df)
+        # Encode categorical variables with one-hot encoding
+        df = encode_categorical_features_onehot(df)
         
-        # Remove avg_weight and date columns
+        # Remove avg_weight and date columns (as specified)
         columns_to_drop = ['avg_weight', 'date']
         df_processed = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
+        
+        # Ensure all expected columns are present with proper order
+        df_processed = ensure_all_features(df_processed)
         
         # Scale features
         scaler = StandardScaler()
@@ -68,27 +76,54 @@ def transform_date(df):
     df['day_to'] = df['date'].dt.dayofyear
     return df
 
-def encode_categorical_features(df):
-    """Encode fish_type and pool_type using predefined categories"""
+def encode_categorical_features_onehot(df):
+    """One-hot encode fish_type and pool_type using predefined categories"""
     df = df.copy()
     
     # Define valid categories
     fish_types = ["Nila", "Mujair", "Gurame"]
     pool_types = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10"]
     
-    # Encode fish_type
-    from sklearn.preprocessing import LabelEncoder
-    fish_encoder = LabelEncoder()
-    fish_encoder.fit(fish_types)
-    df['fish_type_encoded'] = fish_encoder.transform(df['fish_type'])
+    # One-hot encode fish_type
+    for fish_type in fish_types:
+        df[f'fish_type_{fish_type}'] = (df['fish_type'] == fish_type).astype(int)
     
-    # Encode pool_type
-    pool_encoder = LabelEncoder()
-    pool_encoder.fit(pool_types)
-    df['pool_type_encoded'] = pool_encoder.transform(df['pool_type'])
+    # One-hot encode pool_type
+    for pool_type in pool_types:
+        df[f'pool_type_{pool_type}'] = (df['pool_type'] == pool_type).astype(int)
     
     # Drop original categorical columns
     df = df.drop(columns=['fish_type', 'pool_type'])
+    
+    return df
+
+def ensure_all_features(df):
+    """Ensure all expected features are present in the correct order"""
+    # Expected feature order (excluding date and avg_weight as specified)
+    expected_features = [
+        'week_age', 'start_weight(kg)', 'day', 'month', 'week', 'day_to',
+        'pool_type_A1', 'pool_type_A10', 'pool_type_A2', 'pool_type_A3', 
+        'pool_type_A4', 'pool_type_A5', 'pool_type_A6', 'pool_type_A7', 
+        'pool_type_A8', 'pool_type_A9', 'fish_type_Gurame', 'fish_type_Mujair', 
+        'fish_type_Nila'
+    ]
+    
+    # Add missing columns with default values
+    for feature in expected_features:
+        if feature not in df.columns:
+            if feature.startswith('pool_type_A1'):
+                df[feature] = 1  # Default to A1 pool
+            elif feature.startswith('pool_type_'):
+                df[feature] = 0  # Other pool types default to 0
+            elif feature.startswith('fish_type_Nila'):
+                df[feature] = 1  # Default to Nila fish
+            elif feature.startswith('fish_type_'):
+                df[feature] = 0  # Other fish types default to 0
+            else:
+                df[feature] = 0  # Numeric features default to 0
+    
+    # Reorder columns to match expected order
+    df = df[expected_features]
     
     return df
 

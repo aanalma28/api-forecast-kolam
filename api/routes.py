@@ -135,7 +135,8 @@ def generate_forecast():
                     'input_data': {
                         'target_weight': target_weight,
                         'sequence_length': len(sequence),
-                        'sequences_shape': processed_data['sequences'].shape
+                        'sequences_shape': processed_data['sequences'].shape,
+                        'feature_columns': processed_data['feature_columns']
                     },
                     'model_info': result['model_info']
                 }
