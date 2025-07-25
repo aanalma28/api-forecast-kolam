@@ -96,38 +96,32 @@ def generate_forecast():
         
         # Extract parameters
         data = request.json
-        start_date = data.get('start_date', datetime.now().strftime('%Y-%m-%d'))
-        periods = data.get('periods', 30)
+        target_weight = data.get('target_weight')
+        sequence = data.get('sequence')
         
         # Preprocess input
         processed_data = preprocess_input_data(data)
         
-        # Generate predictions
-        predictions = forecast_model.predict(
-            start_date=processed_data['start_date'],
-            periods=processed_data['periods']
+        # Generate predictions until target weight is reached
+        result = forecast_model.predict_until_target(
+            sequences=processed_data['sequences'],
+            target_weight=processed_data['target_weight']
         )
-        
-        # Calculate summary statistics
-        predicted_values = [p['predicted_value'] for p in predictions]
-        summary = {
-            'total_periods': len(predictions),
-            'min_value': min(predicted_values),
-            'max_value': max(predicted_values),
-            'mean_value': sum(predicted_values) / len(predicted_values),
-            'start_date': predictions[0]['date'],
-            'end_date': predictions[-1]['date']
-        }
         
         return jsonify({
             'success': True,
             'data': {
-                'predictions': predictions,
-                'summary': summary,
+                'predictions': result['predictions'],
+                'summary': result['summary'],
                 'metadata': {
-                    'model_type': 'Linear Regression Forecast',
+                    'model_type': 'Fish Growth Forecast',
                     'generated_at': datetime.now().isoformat(),
-                    'parameters': processed_data
+                    'input_data': {
+                        'target_weight': target_weight,
+                        'sequence_length': len(sequence),
+                        'sequences_shape': processed_data['sequences'].shape
+                    },
+                    'model_info': result['model_info']
                 }
             }
         })
@@ -188,15 +182,15 @@ def batch_forecast():
                 
                 # Process request
                 processed_data = preprocess_input_data(req)
-                predictions = forecast_model.predict(
-                    start_date=processed_data['start_date'],
-                    periods=processed_data['periods']
+                result = forecast_model.predict_until_target(
+                    sequences=processed_data['sequences'],
+                    target_weight=processed_data['target_weight']
                 )
                 
                 results.append({
                     'request_id': i,
                     'success': True,
-                    'data': predictions
+                    'data': result
                 })
                 
             except Exception as e:

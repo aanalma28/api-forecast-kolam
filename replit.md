@@ -1,8 +1,8 @@
-# ML Forecasting API
+# Fish Growth Forecasting API
 
 ## Overview
 
-This is a Flask-based REST API service that provides machine learning-powered time series forecasting capabilities. The application uses a linear regression model with trend and seasonality features to generate predictions. It includes a web interface for documentation and API testing, along with comprehensive validation and preprocessing utilities.
+This is a Flask-based REST API service that provides specialized machine learning-powered fish growth forecasting capabilities. The application predicts fish growth timelines until target weight is reached, designed specifically for aquaculture and fish farming operations. It includes a web interface for documentation and API testing, along with comprehensive validation and preprocessing utilities for fish farming data.
 
 ## User Preferences
 
@@ -26,15 +26,16 @@ The application follows a modular Flask architecture with clear separation of co
 - **ProxyFix**: Handles reverse proxy headers for deployment
 
 ### Machine Learning
-- **Scikit-learn**: Linear regression model for time series forecasting
-- **Feature Engineering**: Trend, seasonal (sin/cos), month, and day-of-week features
-- **Model Persistence**: Automatic save/load using joblib
-- **Synthetic Data Generation**: Creates sample training data when no model exists
+- **Fish Growth Model**: Placeholder implementation designed for user's custom model integration
+- **Feature Engineering**: Date transformation (day, month, week, day_to), categorical encoding (fish_type, pool_type), and sequence processing
+- **Data Preprocessing**: StandardScaler normalization, 7-window sequence creation with shape (batch_size, 7, 19)
+- **Target-Based Prediction**: Predicts growth timeline until target weight is reached
 
 ### API Features
+- **Fish-Specific Validation**: Validates fish farming data structure (target_weight, sequence with fish_type, weights, dates)
 - **Rate Limiting**: In-memory rate limiting (100 requests/hour per IP)
-- **Input Validation**: Comprehensive request parameter validation
-- **Data Preprocessing**: Automatic normalization and type conversion
+- **Categorical Encoding**: Supports fish types (Nila, Mujair, Gurame) and pool types (A1-A10)
+- **Sequence Processing**: Creates 7-day windows from time series data for model input
 - **Error Handling**: Structured error responses with appropriate HTTP status codes
 
 ### Frontend Interface

@@ -5,7 +5,7 @@ import re
 logger = logging.getLogger(__name__)
 
 def validate_forecast_request(data):
-    """Validate forecast request parameters"""
+    """Validate fish farming forecast request parameters"""
     errors = []
     
     if not isinstance(data, dict):
@@ -14,56 +14,74 @@ def validate_forecast_request(data):
             'errors': ['Request data must be a JSON object']
         }
     
-    # Validate start_date
-    start_date = data.get('start_date')
-    if start_date:
-        if not isinstance(start_date, str):
-            errors.append('start_date must be a string')
-        else:
-            # Check date format (YYYY-MM-DD)
-            date_pattern = r'^\d{4}-\d{2}-\d{2}$'
-            if not re.match(date_pattern, start_date):
-                errors.append('start_date must be in YYYY-MM-DD format')
-            else:
-                try:
-                    parsed_date = datetime.strptime(start_date, '%Y-%m-%d')
-                    # Check if date is not too far in the past or future
-                    today = datetime.now()
-                    if parsed_date < today - timedelta(days=365 * 5):
-                        errors.append('start_date cannot be more than 5 years in the past')
-                    elif parsed_date > today + timedelta(days=365 * 2):
-                        errors.append('start_date cannot be more than 2 years in the future')
-                except ValueError:
-                    errors.append('start_date is not a valid date')
-    
-    # Validate periods
-    periods = data.get('periods', 30)
-    if not isinstance(periods, int):
-        try:
-            periods = int(periods)
-        except (ValueError, TypeError):
-            errors.append('periods must be an integer')
+    # Validate target_weight
+    target_weight = data.get('target_weight')
+    if target_weight is None:
+        errors.append('target_weight is required')
     else:
-        if periods < 1:
-            errors.append('periods must be at least 1')
-        elif periods > 365:
-            errors.append('periods cannot exceed 365 days')
-    
-    # Validate confidence_level if provided
-    confidence_level = data.get('confidence_level')
-    if confidence_level is not None:
         try:
-            confidence_level = float(confidence_level)
-            if confidence_level <= 0 or confidence_level >= 1:
-                errors.append('confidence_level must be between 0 and 1')
+            target_weight = float(target_weight)
+            if target_weight <= 0:
+                errors.append('target_weight must be greater than 0')
+            elif target_weight > 10:  # Reasonable upper limit for fish weight
+                errors.append('target_weight cannot exceed 10kg')
         except (ValueError, TypeError):
-            errors.append('confidence_level must be a number between 0 and 1')
+            errors.append('target_weight must be a number')
     
-    # Validate additional parameters
-    if 'model_params' in data:
-        model_params = data['model_params']
-        if not isinstance(model_params, dict):
-            errors.append('model_params must be a JSON object')
+    # Validate sequence
+    sequence = data.get('sequence')
+    if not sequence:
+        errors.append('sequence is required')
+    elif not isinstance(sequence, list):
+        errors.append('sequence must be an array')
+    elif len(sequence) < 7:
+        errors.append('sequence must contain at least 7 data points')
+    elif len(sequence) > 100:  # Reasonable upper limit
+        errors.append('sequence cannot exceed 100 data points')
+    else:
+        # Validate each sequence item
+        valid_fish_types = ["Nila", "Mujair", "Gurame"]
+        
+        for i, item in enumerate(sequence):
+            if not isinstance(item, dict):
+                errors.append(f'sequence[{i}] must be an object')
+                continue
+            
+            # Validate required fields
+            required_fields = ['date', 'start_weight', 'avg_weight', 'week_age']
+            for field in required_fields:
+                if field not in item:
+                    errors.append(f'sequence[{i}] missing required field: {field}')
+            
+            # Validate date format
+            if 'date' in item:
+                date_pattern = r'^\d{4}-\d{2}-\d{2}$'
+                if not re.match(date_pattern, str(item['date'])):
+                    errors.append(f'sequence[{i}].date must be in YYYY-MM-DD format')
+                else:
+                    try:
+                        datetime.strptime(str(item['date']), '%Y-%m-%d')
+                    except ValueError:
+                        errors.append(f'sequence[{i}].date is not a valid date')
+            
+            # Validate fish_type (optional but must be valid if provided)
+            if 'fish_type' in item and item['fish_type'] not in valid_fish_types:
+                errors.append(f'sequence[{i}].fish_type must be one of: {valid_fish_types}')
+            
+            # Validate numeric fields
+            numeric_fields = ['start_weight', 'avg_weight', 'week_age']
+            for field in numeric_fields:
+                if field in item:
+                    try:
+                        value = float(item[field])
+                        if value < 0:
+                            errors.append(f'sequence[{i}].{field} must be non-negative')
+                        elif field in ['start_weight', 'avg_weight'] and value > 10:
+                            errors.append(f'sequence[{i}].{field} cannot exceed 10kg')
+                        elif field == 'week_age' and value > 100:
+                            errors.append(f'sequence[{i}].{field} cannot exceed 100 weeks')
+                    except (ValueError, TypeError):
+                        errors.append(f'sequence[{i}].{field} must be a number')
     
     return {
         'valid': len(errors) == 0,

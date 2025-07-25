@@ -5,61 +5,111 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 def preprocess_input_data(data):
-    """Preprocess and normalize input data for forecasting"""
+    """Preprocess fish farming data for forecasting"""
     try:
-        processed = {}
+        import numpy as np
+        from sklearn.preprocessing import StandardScaler, LabelEncoder
         
-        # Handle start_date
-        start_date = data.get('start_date')
-        if start_date:
-            processed['start_date'] = pd.to_datetime(start_date).strftime('%Y-%m-%d')
+        # Extract target weight and sequence
+        target_weight = float(data['target_weight'])
+        sequence = data['sequence']
+        
+        # Convert sequence to DataFrame
+        df = pd.DataFrame(sequence)
+        
+        # Add pool_type column (default to A1 if not provided)
+        if 'pool_type' not in df.columns:
+            df['pool_type'] = 'A1'
+        
+        # Fill missing fish_type with the most common one or default
+        if 'fish_type' not in df.columns:
+            df['fish_type'] = 'Nila'
         else:
-            processed['start_date'] = datetime.now().strftime('%Y-%m-%d')
+            df['fish_type'] = df['fish_type'].fillna('Nila')
         
-        # Handle periods
-        periods = data.get('periods', 30)
-        try:
-            processed['periods'] = int(periods)
-        except (ValueError, TypeError):
-            processed['periods'] = 30
+        # Transform dates
+        df = transform_date(df)
         
-        # Ensure periods is within valid range
-        processed['periods'] = max(1, min(365, processed['periods']))
+        # Encode categorical variables
+        df = encode_categorical_features(df)
         
-        # Handle confidence level
-        confidence_level = data.get('confidence_level', 0.95)
-        try:
-            processed['confidence_level'] = float(confidence_level)
-        except (ValueError, TypeError):
-            processed['confidence_level'] = 0.95
+        # Remove avg_weight and date columns
+        columns_to_drop = ['avg_weight', 'date']
+        df_processed = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
         
-        # Ensure confidence level is within valid range
-        processed['confidence_level'] = max(0.5, min(0.99, processed['confidence_level']))
+        # Scale features
+        scaler = StandardScaler()
+        scaled_data = scaler.fit_transform(df_processed)
         
-        # Handle model parameters
-        model_params = data.get('model_params', {})
-        if isinstance(model_params, dict):
-            processed['model_params'] = model_params
-        else:
-            processed['model_params'] = {}
+        # Create sequences with window size 7
+        sequences = create_sequences(scaled_data, window_size=7)
         
-        # Add metadata
-        processed['preprocessed_at'] = datetime.now().isoformat()
-        
-        logger.debug(f"Preprocessed input data: {processed}")
-        
-        return processed
-        
-    except Exception as e:
-        logger.error(f"Error preprocessing input data: {e}")
-        # Return safe defaults
         return {
-            'start_date': datetime.now().strftime('%Y-%m-%d'),
-            'periods': 30,
-            'confidence_level': 0.95,
-            'model_params': {},
+            'target_weight': target_weight,
+            'sequences': sequences,
+            'scaler': scaler,
+            'feature_columns': df_processed.columns.tolist(),
+            'original_data': df,
+            'processed_data': df_processed,
             'preprocessed_at': datetime.now().isoformat()
         }
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing fish farming data: {e}")
+        raise ValueError(f"Failed to preprocess data: {str(e)}")
+
+def transform_date(df):
+    """Transform date column into multiple time features"""
+    df = df.copy()
+    df['date'] = pd.to_datetime(df['date'])
+    df['day'] = df['date'].dt.day
+    df['month'] = df['date'].dt.month
+    df['week'] = df['date'].dt.isocalendar().week
+    df['day_to'] = df['date'].dt.dayofyear
+    return df
+
+def encode_categorical_features(df):
+    """Encode fish_type and pool_type using predefined categories"""
+    df = df.copy()
+    
+    # Define valid categories
+    fish_types = ["Nila", "Mujair", "Gurame"]
+    pool_types = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10"]
+    
+    # Encode fish_type
+    from sklearn.preprocessing import LabelEncoder
+    fish_encoder = LabelEncoder()
+    fish_encoder.fit(fish_types)
+    df['fish_type_encoded'] = fish_encoder.transform(df['fish_type'])
+    
+    # Encode pool_type
+    pool_encoder = LabelEncoder()
+    pool_encoder.fit(pool_types)
+    df['pool_type_encoded'] = pool_encoder.transform(df['pool_type'])
+    
+    # Drop original categorical columns
+    df = df.drop(columns=['fish_type', 'pool_type'])
+    
+    return df
+
+def create_sequences(data, window_size=7):
+    """Create sequences with specified window size"""
+    import numpy as np
+    
+    if len(data) < window_size:
+        raise ValueError(f"Data length ({len(data)}) is less than window size ({window_size})")
+    
+    sequences = []
+    for i in range(len(data) - window_size + 1):
+        sequence = data[i:i + window_size]
+        sequences.append(sequence)
+    
+    # Convert to numpy array with shape (num_sequences, window_size, num_features)
+    sequences = np.array(sequences)
+    
+    logger.info(f"Created sequences with shape: {sequences.shape}")
+    
+    return sequences
 
 def normalize_time_series_data(data):
     """Normalize time series data for model input"""

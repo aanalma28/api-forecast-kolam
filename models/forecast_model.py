@@ -12,157 +12,99 @@ warnings.filterwarnings('ignore')
 
 logger = logging.getLogger(__name__)
 
-class ForecastModel:
-    """Simple time series forecasting model using linear regression with trend and seasonality features"""
+class FishForecastModel:
+    """Fish farming forecasting model placeholder - designed to work with user's own model"""
     
-    def __init__(self, model_path='data/sample_model.pkl'):
+    def __init__(self, model_path='data/fish_model.pkl'):
         self.model = None
-        self.scaler = StandardScaler()
         self.is_trained = False
         self.model_path = model_path
-        self.feature_names = ['trend', 'sin_seasonal', 'cos_seasonal', 'month', 'day_of_week']
         
-        # Try to load existing model
-        self._load_or_create_model()
+        # This is a placeholder - user will provide their own model
+        logger.info("Fish forecasting model initialized. Waiting for user's model integration.")
     
-    def _load_or_create_model(self):
-        """Load existing model or create a new one"""
+    def predict_until_target(self, sequences, target_weight, current_weight=None):
+        """
+        Predict fish growth until target weight is reached
+        This is a placeholder implementation - user should replace with their actual model
+        """
         try:
-            if os.path.exists(self.model_path):
-                model_data = joblib.load(self.model_path)
-                self.model = model_data['model']
-                self.scaler = model_data['scaler']
-                self.is_trained = True
-                logger.info("Model loaded successfully from disk")
-            else:
-                self._create_sample_model()
-                logger.info("Created new sample model")
-        except Exception as e:
-            logger.error(f"Error loading model: {e}")
-            self._create_sample_model()
-    
-    def _create_sample_model(self):
-        """Create and train a sample model with synthetic data"""
-        try:
-            # Create sample training data
-            dates = pd.date_range(start='2020-01-01', end='2023-12-31', freq='D')
-            np.random.seed(42)
+            # Placeholder implementation for demonstration
+            # In reality, user will replace this with their actual model prediction logic
             
-            # Generate synthetic time series with trend and seasonality
-            trend = np.linspace(100, 200, len(dates))
-            seasonal = 20 * np.sin(2 * np.pi * np.arange(len(dates)) / 365.25)
-            noise = np.random.normal(0, 10, len(dates))
-            values = trend + seasonal + noise
+            if current_weight is None:
+                # Estimate current weight from the last sequence
+                current_weight = self._estimate_current_weight(sequences)
             
-            df = pd.DataFrame({
-                'date': dates,
-                'value': values
-            })
+            predictions = []
+            predicted_weight = current_weight
+            day_counter = 1
             
-            # Train the model
-            self._train_model(df)
-            
-            # Save the model
-            os.makedirs(os.path.dirname(self.model_path), exist_ok=True)
-            joblib.dump({
-                'model': self.model,
-                'scaler': self.scaler
-            }, self.model_path)
-            
-            logger.info("Sample model created and saved successfully")
-            
-        except Exception as e:
-            logger.error(f"Error creating sample model: {e}")
-            # Create a minimal fallback model
-            self.model = LinearRegression()
-            self.is_trained = False
-    
-    def _extract_features(self, df):
-        """Extract features from datetime for forecasting"""
-        df = df.copy()
-        df['date'] = pd.to_datetime(df['date'])
-        
-        # Trend feature (days since start)
-        start_date = df['date'].min()
-        df['trend'] = (df['date'] - start_date).dt.days
-        
-        # Seasonal features
-        day_of_year = df['date'].dt.dayofyear
-        df['sin_seasonal'] = np.sin(2 * np.pi * day_of_year / 365.25)
-        df['cos_seasonal'] = np.cos(2 * np.pi * day_of_year / 365.25)
-        
-        # Calendar features
-        df['month'] = df['date'].dt.month
-        df['day_of_week'] = df['date'].dt.dayofweek
-        
-        return df[self.feature_names]
-    
-    def _train_model(self, df):
-        """Train the forecasting model"""
-        try:
-            # Extract features
-            X = self._extract_features(df)
-            y = df['value'].values
-            
-            # Scale features
-            X_scaled = self.scaler.fit_transform(X)
-            
-            # Train model
-            self.model = LinearRegression()
-            self.model.fit(X_scaled, y)
-            self.is_trained = True
-            
-            # Calculate training metrics
-            y_pred = self.model.predict(X_scaled)
-            mae = mean_absolute_error(y, y_pred)
-            mse = mean_squared_error(y, y_pred)
-            
-            logger.info(f"Model trained successfully. MAE: {mae:.2f}, MSE: {mse:.2f}")
-            
-        except Exception as e:
-            logger.error(f"Error training model: {e}")
-            raise
-    
-    def predict(self, start_date, periods=30):
-        """Make forecasting predictions"""
-        try:
-            if not self.is_trained:
-                raise ValueError("Model is not trained")
-            
-            # Generate future dates
-            start_date = pd.to_datetime(start_date)
-            future_dates = pd.date_range(start=start_date, periods=periods, freq='D')
-            
-            # Create DataFrame for prediction
-            df_future = pd.DataFrame({'date': future_dates})
-            
-            # Extract features
-            X_future = self._extract_features(df_future)
-            X_future_scaled = self.scaler.transform(X_future)
-            
-            # Make predictions
-            predictions = self.model.predict(X_future_scaled)
-            
-            # Format results
-            results = []
-            for i, (date, pred) in enumerate(zip(future_dates, predictions)):
-                results.append({
-                    'date': date.strftime('%Y-%m-%d'),
-                    'predicted_value': float(pred),
-                    'period': i + 1
+            # Simulate predictions until target is reached (max 365 days for safety)
+            while predicted_weight < target_weight and day_counter <= 365:
+                # Placeholder prediction logic - replace with actual model
+                # This simulates a growth rate based on the sequence data
+                growth_rate = self._calculate_growth_rate(sequences)
+                predicted_weight += growth_rate
+                
+                predictions.append({
+                    'day': day_counter,
+                    'predicted_weight': round(predicted_weight, 4),
+                    'date': (datetime.now() + timedelta(days=day_counter)).strftime('%Y-%m-%d'),
+                    'days_to_target': day_counter if predicted_weight >= target_weight else None
                 })
+                
+                day_counter += 1
             
-            return results
+            # Calculate summary
+            final_prediction = predictions[-1] if predictions else None
+            summary = {
+                'days_to_reach_target': final_prediction['day'] if final_prediction and final_prediction['predicted_weight'] >= target_weight else None,
+                'target_weight': target_weight,
+                'current_weight': current_weight,
+                'final_predicted_weight': final_prediction['predicted_weight'] if final_prediction else current_weight,
+                'target_reached': final_prediction['predicted_weight'] >= target_weight if final_prediction else False,
+                'total_predictions': len(predictions)
+            }
+            
+            return {
+                'predictions': predictions,
+                'summary': summary,
+                'model_info': {
+                    'model_type': 'Placeholder Fish Growth Model',
+                    'note': 'Replace this with your actual trained model'
+                }
+            }
             
         except Exception as e:
-            logger.error(f"Error making predictions: {e}")
+            logger.error(f"Error in fish prediction: {e}")
             raise
+    
+    def _estimate_current_weight(self, sequences):
+        """Estimate current weight from sequence data - placeholder logic"""
+        # This is placeholder logic - replace with actual estimation
+        if len(sequences) > 0 and sequences.shape[2] > 0:
+            # Assume the last value in some feature represents weight-related info
+            return 0.8  # Placeholder starting weight
+        return 0.5
+    
+    def _calculate_growth_rate(self, sequences):
+        """Calculate growth rate from sequences - placeholder logic"""
+        # Placeholder growth calculation - replace with actual model prediction
+        base_growth = 0.02  # 20g per day base growth
+        variation = np.random.normal(0, 0.005)  # Add some variation
+        return max(0, base_growth + variation)
     
     def get_model_info(self):
         """Get information about the current model"""
         return {
-            'model_type': 'Linear Regression with Time Features',
-            'is_trained': self.is_trained,
-            'features': self.feature_names,
-            'model_path': self.model_path
+            'model_type': 'Fish Growth Forecasting Model (Placeholder)',
+            'is_trained': True,  # Placeholder - user's model should be pre-trained
+            'input_shape': '(batch_size, 7, 19)',  # Expected input shape
+            'output_type': 'Sequential weight predictions until target',
+            'model_path': self.model_path,
+            'note': 'This is a placeholder implementation. Replace with your actual trained model.'
         }
+
+# For backward compatibility
+ForecastModel = FishForecastModel

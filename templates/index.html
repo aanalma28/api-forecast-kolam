@@ -37,11 +37,11 @@
             <div class="col-lg-8">
                 <h1 class="display-4 fw-bold mb-3">
                     <i data-feather="activity" class="me-3"></i>
-                    ML Forecasting API
+                    Fish Growth Forecasting API
                 </h1>
                 <p class="lead text-muted mb-4">
-                    A powerful REST API service for generating machine learning-based forecasting predictions.
-                    Perfect for time series analysis, trend prediction, and data-driven decision making.
+                    A specialized REST API service for predicting fish growth until target weight is reached.
+                    Perfect for fish farming operations, aquaculture planning, and harvest optimization.
                 </p>
                 <div class="d-flex gap-3 justify-content-center flex-wrap">
                     <a href="/docs" class="btn btn-primary btn-lg">
@@ -120,23 +120,28 @@
                                 <h5>Health Check</h5>
                                 <pre class="bg-secondary p-3 rounded"><code>GET /api/health</code></pre>
                                 
-                                <h5 class="mt-4">Generate Forecast</h5>
+                                <h5 class="mt-4">Fish Growth Forecast</h5>
                                 <pre class="bg-secondary p-3 rounded"><code>POST /api/forecast
 {
-  "start_date": "2024-01-01",
-  "periods": 30
+  "target_weight": 1.2,
+  "sequence": [
+    {"date": "2024-01-01", "fish_type": "Nila", 
+     "start_weight": 0.22, "avg_weight": 0.26, "week_age": 1.0},
+    {"date": "2024-01-02", "start_weight": 0.22, 
+     "avg_weight": 0.32, "week_age": 1.0}
+  ]
 }</code></pre>
                             </div>
                             <div class="col-md-6">
                                 <h5>Model Information</h5>
                                 <pre class="bg-secondary p-3 rounded"><code>GET /api/model/info</code></pre>
                                 
-                                <h5 class="mt-4">Batch Forecasting</h5>
+                                <h5 class="mt-4">Batch Fish Forecasting</h5>
                                 <pre class="bg-secondary p-3 rounded"><code>POST /api/forecast/batch
 {
   "requests": [
-    {"start_date": "2024-01-01", "periods": 15},
-    {"start_date": "2024-02-01", "periods": 30}
+    {"target_weight": 1.0, "sequence": [...]},
+    {"target_weight": 1.5, "sequence": [...]}
   ]
 }</code></pre>
                             </div>
@@ -189,21 +194,33 @@
         
         async function testAPI() {
             try {
+                // Sample fish farming data for testing
+                const testData = {
+                    target_weight: 1.2,
+                    sequence: [
+                        {"date": "2024-01-01", "fish_type": "Nila", "start_weight": 0.22, "avg_weight": 0.26, "week_age": 1.0},
+                        {"date": "2024-01-02", "fish_type": "Nila", "start_weight": 0.22, "avg_weight": 0.32, "week_age": 1.0},
+                        {"date": "2024-01-03", "fish_type": "Nila", "start_weight": 0.22, "avg_weight": 0.40, "week_age": 1.0},
+                        {"date": "2024-01-04", "fish_type": "Nila", "start_weight": 0.22, "avg_weight": 0.51, "week_age": 1.0},
+                        {"date": "2024-01-05", "fish_type": "Nila", "start_weight": 0.22, "avg_weight": 0.60, "week_age": 1.0},
+                        {"date": "2024-01-06", "fish_type": "Nila", "start_weight": 0.22, "avg_weight": 0.70, "week_age": 1.0},
+                        {"date": "2024-01-07", "fish_type": "Nila", "start_weight": 0.22, "avg_weight": 0.80, "week_age": 1.0}
+                    ]
+                };
+
                 const response = await fetch('/api/forecast', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        start_date: new Date().toISOString().split('T')[0],
-                        periods: 7
-                    })
+                    body: JSON.stringify(testData)
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('API Test Successful! Generated ' + data.data.predictions.length + ' predictions.');
+                    const summary = data.data.summary;
+                    alert(`Fish Growth Forecast Success!\n\nTarget Weight: ${summary.target_weight}kg\nDays to reach target: ${summary.days_to_reach_target || 'Not reached'}\nTotal predictions: ${summary.total_predictions}\nTarget reached: ${summary.target_reached ? 'Yes' : 'No'}`);
                 } else {
                     alert('API Test Failed: ' + data.error);
                 }
