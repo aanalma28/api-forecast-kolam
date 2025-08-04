@@ -1,7 +1,7 @@
 [project]
-name = "repl-nix-workspace"
+name = "api-forecast-kolam"
 version = "0.1.0"
-description = "Add your description here"
+description = "This API use for process request forecast fish in pool"
 requires-python = ">=3.11"
 dependencies = [
     "email-validator>=2.2.0",
@@ -14,4 +14,18 @@ dependencies = [
     "scikit-learn>=1.7.1",
     "pandas>=2.3.1",
     "numpy>=2.3.2",
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = [
+    "api",
+    "models",
+    "data",
+    "static",
+    "templates",
+    "utils"
 ]
