@@ -49,9 +49,9 @@ uv pip install -r requirements.txt   # if a requirements.txt exists
 uv pip install .
 ```
 
-## ▶️ Step 4: Run the Project
+## ▶️ Step 3: Run the Project
 
-After all dependencies is installed, you can run main.py:
+After all dependencies is installed, you can run ```main.py```:
 
 ```bash
 uv run python main.py
@@ -61,8 +61,8 @@ If you use FastAPI/Uvicorn, for example:
 uv run uvicorn app:main --host 0.0.0.0 --port 8000 --reload
 ```
 
-## 5. (Optional) Use Environment Variables
-Create .env file in the project root:
+## 4. (Optional) Use Environment Variables
+Create ```.env``` file in the project root:
 ```env
 DB_URL=postgresql://...
 SECRET_KEY=supersecret
@@ -78,12 +78,12 @@ uv pip install python-dotenv
 ```
 
 ## 🔁 Updating Dependencies (if needed)
-If you edit pyproject.toml, regenerate the lockfile with:
+If you edit ```pyproject.toml```, regenerate the lockfile with:
 ```bash
 uv pip install -e .
 uv pip freeze > requirements.txt   # optional legacy support
 ```
-Or recreate ```file .venv``` entirely:
+Or recreate ```.venv``` entirely:
 ```bash
 rm -rf .venv
 uv venv
@@ -95,6 +95,29 @@ To remove the environment:
 ```bash
 rm -rf .venv
 ```
+
+## 📦 Deploy Automation (Optional)
+You can automate this setup with a ```setup.sh```:
+```bash
+#!/bin/bash
+cd "$(dirname "$0")"
+
+# Ensure pipx and uv are installed
+python3 -m pip install --user pipx --break-system-packages
+python3 -m pipx ensurepath
+source ~/.bashrc
+pipx install uv
+
+# Setup project
+uv venv
+uv pip install .
+
+echo "✅ Project ready to run!"
+```
+
+## 🔐 Security Reminder
+- Never commit ```.env``` or ```.venv``` to Git.
+- Always use separate database users per project on production.
 
 
 
