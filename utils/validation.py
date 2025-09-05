@@ -26,8 +26,15 @@ def validate_forecast_request(data):
             elif target_weight > 10:  # Reasonable upper limit for fish weight
                 errors.append('target_weight cannot exceed 10kg')
         except (ValueError, TypeError):
-            errors.append('target_weight must be a number')
+            errors.append('target_weight must be a number')        
     
+    return {
+        'valid': len(errors) == 0,
+        'errors': errors
+    }
+
+def validate_sequence(data):
+    errors = []
     # Validate sequence
     sequence = data.get('sequence')
     if not sequence:

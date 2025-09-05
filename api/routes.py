@@ -109,12 +109,13 @@ def generate_forecast():
                 'error': 'Validation failed',
                 'details': validation_result['errors'],
                 'status': 400
-            }), 400
+            }), 400                
         
         # Extract parameters
         target_weight = data.get('target_weight')
-        sequence = data.get('sequence')
-        
+        start_weight = data.get('start_weight')
+        end_weight = data.get('end_weight')        
+        sequences = generate_sequences(start_weight, end_weight, data)        
         # Preprocess input
         processed_data = preprocess_input_data(data)
         
