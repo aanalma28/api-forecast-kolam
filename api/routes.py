@@ -113,8 +113,7 @@ def generate_forecast():
                 'status': 400
             }), 400                
         
-        # Extract parameters
-        target_weight = data.get('target_weight')        
+        # Extract parameters        
         sequences = generate_sequences(data)
         data['sequence'] = sequences
         # validate sequence length
@@ -141,7 +140,7 @@ def generate_forecast():
                     'model_type': 'Fish Growth Forecast',
                     'generated_at': datetime.now().isoformat(),
                     'input_data': {
-                        'target_weight': target_weight,
+                        'target_weight': data.get('target_weight'),
                         'sequence_length': len(sequence),
                         'sequences_shape': processed_data['sequences'].shape,
                         'feature_columns': processed_data['feature_columns']
