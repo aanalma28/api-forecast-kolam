@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 import pandas as pd
+import joblib
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ def preprocess_input_data(sequence):
         if 'fish_type' not in df.columns:
             df['fish_type'] = 'Nila'
         else:
-            df['fish_type'] = df['fish_type'].fillna('Nila')
+            df['fish_type'] = df['fish_type'].fillna('Nila Merah')
         
         # Transform dates
         df = transform_date(df)
@@ -36,22 +37,26 @@ def preprocess_input_data(sequence):
         
         # Remove avg_weight and date columns (as specified)
         columns_to_drop = ['avg_weight', 'date']
+        target = df['avg_weight'].values
         df_processed = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
         
         # Ensure all expected columns are present with proper order
-        df_processed = ensure_all_features(df_processed)
-        
+        df_processed = ensure_all_features(df_processed)        
         # Scale features
-        scaler = StandardScaler()
-        scaled_data = scaler.fit_transform(df_processed)
-        
+        scaler_X = joblib.load('data/scaler_X.pkl')        
+        scaler_y = joblib.load('data/scaler_y.pkl')
+        scaled_data = scaler_X.transform(df_processed)
+        target = target.reshape(-1, 1)
+        target_scaled = scaler_y.transform(target)
+        scaler = scaler_X
+        scaler_target = scaler_y
         # Create sequences with window size 7
         sequences = create_sequences(scaled_data, window_size=7)
         
-        return {
-            'target_weight': target_weight,
+        return {            
             'sequences': sequences,
             'scaler': scaler,
+            'scaler_target': scaler_target,
             'feature_columns': df_processed.columns.tolist(),
             'original_data': df,
             'processed_data': df_processed,
@@ -81,14 +86,14 @@ def encode_categorical_features_onehot(df):
     fish_types = ["Nila Merah", "Patin", "Gurame", "Lele", "Bawal"]
     pool_types = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10"]
     
-    # One-hot encode fish_type
-    for fish_type in fish_types:
-        df[f'fish_type_{fish_type}'] = (df['fish_type'] == fish_type).astype(int)
-    
     # One-hot encode pool_type
     for pool_type in pool_types:
         df[f'pool_type_{pool_type}'] = (df['pool_type'] == pool_type).astype(int)
-    
+        
+    # One-hot encode fish_type
+    for fish_type in fish_types:
+        df[f'fish_type_{fish_type}'] = (df['fish_type'] == fish_type).astype(int)
+        
     # Drop original categorical columns
     df = df.drop(columns=['fish_type', 'pool_type'])
     
@@ -98,12 +103,13 @@ def ensure_all_features(df):
     """Ensure all expected features are present in the correct order"""
     # Expected feature order (excluding date and avg_weight as specified)
     # dynamical features
+    # sesuaikan urutan feature dengan kolom dataset training model
     expected_features = [
         'week_age', 'start_weight(kg)', 'day', 'month', 'week', 'day_to',
         'pool_type_A1', 'pool_type_A10', 'pool_type_A2', 'pool_type_A3', 
         'pool_type_A4', 'pool_type_A5', 'pool_type_A6', 'pool_type_A7', 
         'pool_type_A8', 'pool_type_A9', 'fish_type_Bawal','fish_type_Gurame',
-        'fish_type_Lele', 'fish_type_Patin', 'fish_type_Nila Merah'
+        'fish_type_Lele',  'fish_type_Nila Merah', 'fish_type_Patin'
     ]
     
     # Add missing columns with default values

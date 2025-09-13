@@ -114,7 +114,7 @@ def generate_forecast():
             }), 400                
         
         # Extract parameters        
-        sequences = generate_sequences(data)
+        sequences = generate_sequences(data)        
         data['sequence'] = sequences
         # validate sequence length
         validated_sequence = validate_sequence(data)
@@ -141,9 +141,9 @@ def generate_forecast():
                     'generated_at': datetime.now().isoformat(),
                     'input_data': {
                         'target_weight': data.get('target_weight'),
-                        'sequence_length': len(sequence),
-                        'sequences_shape': processed_data['sequences'].shape,
-                        'feature_columns': processed_data['feature_columns']
+                        'sequence_length': len(data['sequence']),
+                        'sequences_shape': result['sequences_shape'],
+                        'feature_columns': result['feature_columns']
                     },
                     'model_info': result['model_info']
                 }

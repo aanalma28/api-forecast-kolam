@@ -38,10 +38,10 @@ def generate_sequences(data):
             break
         sequences.append({
             'date': str(date),
+            'week_age': data.get('week_age'),
             'fish_type': data.get('fish_type'),
             'start_weight': float(np.round(initial_weight, 2)),
             'avg_weight': float(np.round(weight, 2)),
-            'week_age': data.get('week_age')
         })
     
     return sequences

@@ -4,6 +4,15 @@ import re
 
 logger = logging.getLogger(__name__)
 
+# Maksimum bobot per jenis ikan (isi sesuai dataset kamu)
+MAX_WEIGHT_PER_FISH = {
+    "Nila Merah": 2.5,
+    "Patin": 3.0,
+    "Lele": 2.0,
+    "Bawal": 1.5,
+    "Gurame": 0.3
+}
+
 def validate_forecast_request(data):
     """Validate fish farming forecast request parameters"""
     errors = []
@@ -14,8 +23,10 @@ def validate_forecast_request(data):
             'errors': ['Request data must be a JSON object']
         }
     
-    # Validate target_weight
+    # Validate target_weight     
     target_weight = data.get('target_weight')
+    fish_type = data.get('fish_type')  # pastikan fish_type dikirim di request
+
     if target_weight is None:
         errors.append('target_weight is required')
     else:
@@ -23,11 +34,15 @@ def validate_forecast_request(data):
             target_weight = float(target_weight)
             if target_weight <= 0:
                 errors.append('target_weight must be greater than 0')
-            elif target_weight > 10:  # Reasonable upper limit for fish weight
+            elif fish_type in MAX_WEIGHT_PER_FISH:
+                max_weight = MAX_WEIGHT_PER_FISH[fish_type]
+                if target_weight > max_weight:
+                    errors.append(f'target_weight for {fish_type} cannot exceed {max_weight}kg (max in dataset)')
+            elif target_weight > 10:  # fallback limit
                 errors.append('target_weight cannot exceed 10kg')
         except (ValueError, TypeError):
-            errors.append('target_weight must be a number')        
-    
+            errors.append('target_weight must be a number')
+                
     return {
         'valid': len(errors) == 0,
         'errors': errors

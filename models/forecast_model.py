@@ -31,12 +31,9 @@ class FishForecastModel:
         Predict fish growth until target weight is reached
         This is a placeholder implementation - user should replace with their actual model
         """
-        try:
-            # Placeholder implementation for demonstration
-            # In reality, user will replace this with their actual model prediction logic                        
-            
+        try:            
             # prepare the data
-            sequence = data['sequence']
+            sequence = data['sequence']            
             new_sequence = sequence.copy()  # to avoid modifying the original
             target_weight = float(data['target_weight'])
 
@@ -45,31 +42,37 @@ class FishForecastModel:
             week_age = new_sequence[-1]['week_age']
             
             predictions = []   
-            day_counter = 1            
+            day_counter = 1
+            feature_columns = None
+            sequences_shape = None
             
             # Simulate predictions until target is reached (max 365 days for safety)
             while current_weight < target_weight and day_counter <= 365:
                 # predict next weight                
                 input_seq = preprocess_input_data(new_sequence)
-                next_pred = self.model.predict(input_seq['sequences'])                
+                feature_columns = input_seq['feature_columns']
+                sequences_shape = input_seq['sequences'].shape
+                next_pred = self.model.predict(input_seq['sequences'][-1][np.newaxis, ...])
+                result_pred = input_seq['scaler_target'].inverse_transform(next_pred.reshape(1, -1))
+                print(result_pred[0][0])
 
                 # create new dict
                 new_dict = {}
                 new_dict['date'] = (datetime.strptime(new_sequence[-1]['date'], "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
                 new_dict['fish_type'] = new_sequence[-1]['fish_type']
                 new_dict['start_weight'] = new_sequence[-1]['start_weight']
-                new_dict['avg_weight'] = float(np.round(next_pred[0][0], 2))
+                new_dict['avg_weight'] = float(result_pred[0][0])
                 new_dict['week_age'] = week_age + (day_counter // 7) # floor division
 
                 new_sequence.pop(0)  # remove the oldest entry
                 new_sequence.append(new_dict)  # add the new prediction
                 
-                current_weight = float(np.round(next_pred[0][0], 2))
+                current_weight = result_pred[0][0]
                 predictions.append({
-                    'day': day_counter,
-                    'predicted_weight': round(current_weight, 4),
+                    'day': int(day_counter),
+                    'predicted_weight': round(float(current_weight), 4),
                     'date': new_dict['date'],
-                    'days_to_target': day_counter if current_weight >= target_weight else None
+                    'days_to_target': int(day_counter) if current_weight >= target_weight else None
                 })
                 
                 day_counter += 1
@@ -77,17 +80,19 @@ class FishForecastModel:
             # Calculate summary
             final_prediction = predictions[-1] if predictions else None
             summary = {
-                'days_to_reach_target': final_prediction['day'] if final_prediction and final_prediction['predicted_weight'] >= target_weight else None,
-                'target_weight': target_weight,
-                'current_weight': current_weight,
-                'final_predicted_weight': final_prediction['predicted_weight'] if final_prediction else current_weight,
-                'target_reached': final_prediction['predicted_weight'] >= target_weight if final_prediction else False,
-                'total_predictions': len(predictions)
+                'days_to_reach_target': int(final_prediction['day']) if (final_prediction and final_prediction['predicted_weight'] >= target_weight) else None,
+                'target_weight': float(target_weight),
+                'current_weight': float(current_weight),
+                'final_predicted_weight': float(final_prediction['predicted_weight']) if final_prediction else current_weight,
+                'target_reached': bool(final_prediction['predicted_weight'] >= target_weight) if final_prediction else False,
+                'total_predictions': int(len(predictions)),
             }
             
             return {
                 'predictions': predictions,
                 'summary': summary,
+                'feature_columns': feature_columns,
+                'sequences_shape': sequences_shape,
                 'model_info': {
                     'model_type': 'Placeholder Fish Growth Model',
                     'note': 'Replace this with your actual trained model'
