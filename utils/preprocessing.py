@@ -4,15 +4,11 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-def preprocess_input_data(data):
+def preprocess_input_data(sequence):
     """Preprocess fish farming data for forecasting"""
     try:
         import numpy as np
-        from sklearn.preprocessing import StandardScaler, LabelEncoder
-        
-        # Extract target weight and sequence
-        target_weight = float(data['target_weight'])
-        sequence = data['sequence']
+        from sklearn.preprocessing import StandardScaler, LabelEncoder                
         
         # Convert sequence to DataFrame
         df = pd.DataFrame(sequence)

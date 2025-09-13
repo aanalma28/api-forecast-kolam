@@ -3,9 +3,11 @@ import logging
 import numpy as np
 import pandas as pd
 import joblib
+from utils.preprocessing import preprocess_input_data
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error
+from tensorflow.keras.models import load_model
 from datetime import datetime, timedelta
 import warnings
 warnings.filterwarnings('ignore')
@@ -16,9 +18,10 @@ class FishForecastModel:
     """Fish farming forecasting model placeholder - designed to work with user's own model"""
     
     def __init__(self, model_path='data/model_bilstm.h5'):
-        self.model = None
-        self.is_trained = False
+        self.model = load_model(model_path)
+        self.is_trained = True
         self.model_path = model_path
+        logger.info("Fish forecasting model loaded from .h5 file.")
         
         # This is a placeholder - user will provide their own model
         logger.info("Fish forecasting model initialized. Waiting for user's model integration.")
@@ -30,26 +33,23 @@ class FishForecastModel:
         """
         try:
             # Placeholder implementation for demonstration
-            # In reality, user will replace this with their actual model prediction logic
+            # In reality, user will replace this with their actual model prediction logic                        
             
-            if current_weight is None:
-                # Estimate current weight from the last sequence
-                current_weight = self._estimate_current_weight(sequences)
-            
-            # inverse transform sequences
-            sequence = np.array(data['sequence'])
+            # prepare the data
+            sequence = data['sequence']
             target_weight = float(data['target_weight'])
+
+            # set current weight from last known sequence
+            current_weight = sequence[-1]['avg_weight']
             
-            predictions = []
-            predicted_weight = current_weight
-            day_counter = 1
+            predictions = []      
+            day_counter = 1            
             
             # Simulate predictions until target is reached (max 365 days for safety)
-            while predicted_weight < target_weight and day_counter <= 365:
-                # Placeholder prediction logic - replace with actual model
-                # This simulates a growth rate based on the sequence data
-                growth_rate = self._calculate_growth_rate(sequences)
-                predicted_weight += growth_rate
+            while current_weight < target_weight and day_counter <= 365:
+                # predict next weight
+                seq = preprocess_input_data(sequence)
+                next_pred = self.model.predict(seq['sequences'])                              
                 
                 predictions.append({
                     'day': day_counter,
@@ -65,7 +65,7 @@ class FishForecastModel:
             summary = {
                 'days_to_reach_target': final_prediction['day'] if final_prediction and final_prediction['predicted_weight'] >= target_weight else None,
                 'target_weight': target_weight,
-                'current_weight': current_weight,
+                'curresnt_weight': current_weight,
                 'final_predicted_weight': final_prediction['predicted_weight'] if final_prediction else current_weight,
                 'target_reached': final_prediction['predicted_weight'] >= target_weight if final_prediction else False,
                 'total_predictions': len(predictions)

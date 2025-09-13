@@ -2,9 +2,10 @@ import numpy as np
 from datetime import datetime, timedelta
 from utils.interpolations import cubic_spline_interpolation, exp_interpolation, linear_interpolation, log_interpolation, monotonic_interpolation
 
-def generate_sequences(start_weight, end_weight, data):
-    start_weight = float(start_weight)
-    end_weight = float(end_weight)
+def generate_sequences(data):
+    initial_weight = float(data.get('initial_weight'))
+    start_weight = float(data.get('start_weight'))
+    end_weight = float(data.get('end_weight'))
     start_date = data.get('start_date')
     end_date = data.get('end_date')
     target_weight = float(data.get('target_weight'))
@@ -38,7 +39,7 @@ def generate_sequences(start_weight, end_weight, data):
         sequences.append({
             'date': str(date),
             'fish_type': data.get('fish_type'),
-            'start_weight': float(np.round(start_weight, 2)),
+            'start_weight': float(np.round(initial_weight, 2)),
             'avg_weight': float(np.round(weight, 2)),
             'week_age': data.get('week_age')
         })

@@ -114,10 +114,8 @@ def generate_forecast():
             }), 400                
         
         # Extract parameters
-        target_weight = data.get('target_weight')
-        start_weight = data.get('start_weight')
-        end_weight = data.get('end_weight')        
-        sequences = generate_sequences(start_weight, end_weight, data)
+        target_weight = data.get('target_weight')        
+        sequences = generate_sequences(data)
         data['sequence'] = sequences
         # validate sequence length
         validated_sequence = validate_sequence(data)
