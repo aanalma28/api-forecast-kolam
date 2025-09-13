@@ -189,24 +189,13 @@
                                 
                                 <h6>Request Body:</h6>
                                 <pre class="bg-secondary p-3 rounded"><code>{
-  "target_weight": 1.2,        // Target weight in kg
-  "sequence": [                // Array of daily fish data (min 7 days)
+  "target_weight": 1.2,        // Target weight in kg  
   "start_date": "2024-01-01",  // Start date of the sequence (ISO format), in this case first day of week
   "end_date": "2024-01-07",    // End date of the sequence (ISO format), in this case last day of week
   "start_weight": 0.22,        // Initial weight, first day of week in kg
   "end_weight": 0.25,          // Final weight, last day of week in kg
   "week_age": 1.0,             // Week age
-  "fish_type": "Nila",         // Nila Merah, Patin, Lele, Bawal, or Gurame
-  "pool_type": "A1"            // Optional: A1-A10 (defaults to A1)
-    {
-      "date": "2024-01-01",
-      "fish_type": "Nila",      // Nila, Mujair, or Gurame
-      "start_weight": 0.22,     // Initial weight in kg
-      "avg_weight": 0.26,       // Average weight in kg (excluded from features)
-      "week_age": 1.0,          // Week age      
-    }
-    // ... at least 7 days of data required
-  ]
+  "fish_type": "Nila",         // Nila Merah, Patin, Lele, Bawal, or Gurame  
 }</code></pre>
 
                                 <h6>Response:</h6>

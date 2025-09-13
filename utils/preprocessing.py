@@ -81,7 +81,8 @@ def encode_categorical_features_onehot(df):
     df = df.copy()
     
     # Define valid categories
-    fish_types = ["Nila", "Mujair", "Gurame"]
+    # dynamical features
+    fish_types = ["Nila Merah", "Patin", "Gurame", "Lele", "Bawal"]
     pool_types = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10"]
     
     # One-hot encode fish_type
@@ -100,12 +101,13 @@ def encode_categorical_features_onehot(df):
 def ensure_all_features(df):
     """Ensure all expected features are present in the correct order"""
     # Expected feature order (excluding date and avg_weight as specified)
+    # dynamical features
     expected_features = [
         'week_age', 'start_weight(kg)', 'day', 'month', 'week', 'day_to',
         'pool_type_A1', 'pool_type_A10', 'pool_type_A2', 'pool_type_A3', 
         'pool_type_A4', 'pool_type_A5', 'pool_type_A6', 'pool_type_A7', 
-        'pool_type_A8', 'pool_type_A9', 'fish_type_Gurame', 'fish_type_Mujair', 
-        'fish_type_Nila'
+        'pool_type_A8', 'pool_type_A9', 'fish_type_Bawal','fish_type_Gurame',
+        'fish_type_Lele', 'fish_type_Patin', 'fish_type_Nila Merah'
     ]
     
     # Add missing columns with default values

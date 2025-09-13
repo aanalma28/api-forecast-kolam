@@ -1,6 +1,6 @@
 import numpy as np
 from datetime import datetime, timedelta
-from utils.interpolations import cubic_spline_interpolation, exp_interpolation, linear_interpolation, log_interpolation, monotonic_interpolation, generate_sequences
+from utils.interpolations import cubic_spline_interpolation, exp_interpolation, linear_interpolation, log_interpolation, monotonic_interpolation
 
 def generate_sequences(start_weight, end_weight, data):
     start_weight = float(start_weight)
@@ -12,11 +12,35 @@ def generate_sequences(start_weight, end_weight, data):
     known_times = [np.datetime64(start_date), np.datetime64(end_date)]
     known_values = np.array([start_weight, end_weight])
     weights = []
+    sequences = []
 
-    if percentage < 0.6:
-        weights = exp_interpolation(start_weight, end_weight)
-    elif 0.6 <= percentage < 0.8:
-        weights = monotonic_interpolation(known_times, known_values)
-    elif 0.8 <= percentage < 1.0:
-        weights = log_interpolation(start_weight, end_weight, K=target_weight)
+    # Kenaikan berat
+    if percentage > 1:
+        if percentage <= 1.1:
+            weights = linear_interpolation(start_weight, end_weight)            
+        elif percentage <= 1.3:
+            weights = exp_interpolation(start_weight, end_weight)            
+        else:
+            weights = log_interpolation(start_weight, end_weight, K=target_weight)            
+    # Penurunan berat
+    else:
+        if percentage >= 0.9:
+            weights = linear_interpolation(start_weight, end_weight)            
+        elif percentage >= 0.7:
+            weights = exp_interpolation(start_weight, end_weight)            
+        else:
+            weights = log_interpolation(start_weight, end_weight, K=target_weight)            
 
+    for index, weight in enumerate(weights):
+        date = (np.datetime64(start_date) + np.timedelta64(index, 'D')).astype(object)
+        if weight > target_weight:
+            break
+        sequences.append({
+            'date': str(date),
+            'fish_type': data.get('fish_type'),
+            'start_weight': float(np.round(start_weight, 2)),
+            'avg_weight': float(np.round(weight, 2)),
+            'week_age': data.get('week_age')
+        })
+    
+    return sequences

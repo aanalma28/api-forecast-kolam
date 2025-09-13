@@ -3,6 +3,8 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime, timedelta
 from utils.validation import validate_forecast_request
 from utils.preprocessing import preprocess_input_data
+from utils.generate_sequences import generate_sequences
+from utils.validation import validate_sequence
 from app import forecast_model
 
 logger = logging.getLogger(__name__)
@@ -115,15 +117,22 @@ def generate_forecast():
         target_weight = data.get('target_weight')
         start_weight = data.get('start_weight')
         end_weight = data.get('end_weight')        
-        sequences = generate_sequences(start_weight, end_weight, data)        
+        sequences = generate_sequences(start_weight, end_weight, data)
+        data['sequence'] = sequences
+        # validate sequence length
+        validated_sequence = validate_sequence(data)
+        if not validated_sequence['valid']:
+            return jsonify({
+                'success': False,
+                'error': 'Sequence validation failed',
+                'details': validated_sequence['errors'],
+                'status': 400
+            }), 400
         # Preprocess input
-        processed_data = preprocess_input_data(data)
+        # processed_data = preprocess_input_data(data)
         
         # Generate predictions until target weight is reached
-        result = forecast_model.predict_until_target(
-            sequences=processed_data['sequences'],
-            target_weight=processed_data['target_weight']
-        )
+        result = forecast_model.predict_until_target(data=data)
         
         return jsonify({
             'success': True,

@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class FishForecastModel:
     """Fish farming forecasting model placeholder - designed to work with user's own model"""
     
-    def __init__(self, model_path='data/fish_model.pkl'):
+    def __init__(self, model_path='data/model_bilstm.h5'):
         self.model = None
         self.is_trained = False
         self.model_path = model_path
@@ -23,7 +23,7 @@ class FishForecastModel:
         # This is a placeholder - user will provide their own model
         logger.info("Fish forecasting model initialized. Waiting for user's model integration.")
     
-    def predict_until_target(self, sequences, target_weight, current_weight=None):
+    def predict_until_target(self, data):
         """
         Predict fish growth until target weight is reached
         This is a placeholder implementation - user should replace with their actual model
@@ -35,6 +35,10 @@ class FishForecastModel:
             if current_weight is None:
                 # Estimate current weight from the last sequence
                 current_weight = self._estimate_current_weight(sequences)
+            
+            # inverse transform sequences
+            sequence = np.array(data['sequence'])
+            target_weight = float(data['target_weight'])
             
             predictions = []
             predicted_weight = current_weight

@@ -47,7 +47,11 @@ def validate_sequence(data):
         errors.append('sequence cannot exceed 100 data points')
     else:
         # Validate each sequence item
-        valid_fish_types = ["Nila", "Mujair", "Gurame"]
+        # dynamical features
+        valid_fish_types = [
+            "Nila Merah", "Patin", "Lele", 
+            "Bawal", "Gurame"
+        ]
         
         for i, item in enumerate(sequence):
             if not isinstance(item, dict):
@@ -55,7 +59,11 @@ def validate_sequence(data):
                 continue
             
             # Validate required fields
-            required_fields = ['date', 'start_weight', 'avg_weight', 'week_age']
+            # dynamical features
+            required_fields = [
+                'date', 'fish_type',
+                'start_weight', 'avg_weight', 'week_age'
+            ]
             for field in required_fields:
                 if field not in item:
                     errors.append(f'sequence[{i}] missing required field: {field}')

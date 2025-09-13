@@ -120,5 +120,9 @@ echo "✅ Project ready to run!"
 - Always use separate database users per project on production.
 
 
+### Dynamical Feature
+In this project, search commented with ```dynamical features``` keywords, that refer to some code or array should change based on different features like ```fish_type``` or ```pool_type```.
+
+
 
 
