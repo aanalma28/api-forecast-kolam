@@ -48,9 +48,10 @@
                         <i data-feather="book-open" class="me-2"></i>
                         View API Docs
                     </a>
-                    <button class="btn btn-outline-secondary btn-lg" onclick="testAPI()">
+                    <button id="testApiBtn" class="btn btn-outline-secondary btn-lg" onclick="testAPI()">
                         <i data-feather="play" class="me-2"></i>
-                        Test API
+                        <span id="testApiBtnText">Test API</span>
+                        <span id="testApiBtnLoading" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
                     </button>
                 </div>
             </div>
@@ -193,19 +194,23 @@
         });
         
         async function testAPI() {
+            const btn = document.getElementById('testApiBtn');
+            const btnText = document.getElementById('testApiBtnText');
+            const btnLoading = document.getElementById('testApiBtnLoading');
+            btn.disabled = true;
+            btnLoading.classList.remove('d-none');
+            btnText.textContent = 'Testing...';
             try {
-                // Sample fish farming data for testing
+                // Example request
                 const testData = {
-                    target_weight: 1.2,
-                    sequence: [
-                        {"date": "2024-01-01", "fish_type": "Nila", "start_weight": 0.22, "avg_weight": 0.26, "week_age": 1.0},
-                        {"date": "2024-01-02", "fish_type": "Nila", "start_weight": 0.22, "avg_weight": 0.32, "week_age": 1.0},
-                        {"date": "2024-01-03", "fish_type": "Nila", "start_weight": 0.22, "avg_weight": 0.40, "week_age": 1.0},
-                        {"date": "2024-01-04", "fish_type": "Nila", "start_weight": 0.22, "avg_weight": 0.51, "week_age": 1.0},
-                        {"date": "2024-01-05", "fish_type": "Nila", "start_weight": 0.22, "avg_weight": 0.60, "week_age": 1.0},
-                        {"date": "2024-01-06", "fish_type": "Nila", "start_weight": 0.22, "avg_weight": 0.70, "week_age": 1.0},
-                        {"date": "2024-01-07", "fish_type": "Nila", "start_weight": 0.22, "avg_weight": 0.80, "week_age": 1.0}
-                    ]
+                    target_weight: 0.1,
+                    start_date: "2024-01-01",
+                    end_date: "2024-01-07",
+                    initial_weight: 0.01,
+                    start_weight: 0.01,
+                    end_weight: 0.02,
+                    week_age: 1.0,
+                    fish_type: "Lele"
                 };
 
                 const response = await fetch('/api/forecast', {
@@ -215,17 +220,21 @@
                     },
                     body: JSON.stringify(testData)
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     const summary = data.data.summary;
                     alert(`Fish Growth Forecast Success!\n\nTarget Weight: ${summary.target_weight}kg\nDays to reach target: ${summary.days_to_reach_target || 'Not reached'}\nTotal predictions: ${summary.total_predictions}\nTarget reached: ${summary.target_reached ? 'Yes' : 'No'}`);
                 } else {
-                    alert('API Test Failed: ' + data.error);
+                    alert('API Test Failed: ' + (data.error || JSON.stringify(data)));
                 }
             } catch (error) {
                 alert('API Test Failed: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btnLoading.classList.add('d-none');
+                btnText.textContent = 'Test API';
             }
         }
     </script>

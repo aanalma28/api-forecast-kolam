@@ -6,10 +6,10 @@ logger = logging.getLogger(__name__)
 
 # Maksimum bobot per jenis ikan (isi sesuai dataset kamu)
 MAX_WEIGHT_PER_FISH = {
-    "Nila Merah": 2.5,
-    "Patin": 3.0,
-    "Lele": 2.0,
-    "Bawal": 1.5,
+    "Nila Merah": 0.25,
+    "Patin": 0.6,
+    "Lele": 0.15,
+    "Bawal": 0.5,
     "Gurame": 0.3
 }
 
@@ -25,7 +25,7 @@ def validate_forecast_request(data):
     
     # Validate target_weight     
     target_weight = data.get('target_weight')
-    fish_type = data.get('fish_type')  # pastikan fish_type dikirim di request
+    fish_type = data.get('fish_type')
 
     if target_weight is None:
         errors.append('target_weight is required')
@@ -42,7 +42,74 @@ def validate_forecast_request(data):
                 errors.append('target_weight cannot exceed 10kg')
         except (ValueError, TypeError):
             errors.append('target_weight must be a number')
-                
+
+    # Validate initial_weight range
+    if 'initial_weight' in data:
+        try:
+            iw = float(data['initial_weight'])
+            if not (0 < iw < 0.15):
+                errors.append("initial_weight must be greater than 0 and less than 0.15")
+        except (ValueError, TypeError):
+            errors.append("initial_weight must be a number")
+
+    # Validate start_weight
+    if 'start_weight' in data:
+        try:
+            sw = float(data['start_weight'])
+            if sw < 0 or sw > 10:
+                errors.append("start_weight must be between 0 and 10 (kg)")
+        except (ValueError, TypeError):
+            errors.append("start_weight must be a number")
+
+    # Validate end_weight
+    if 'end_weight' in data:
+        try:
+            ew = float(data['end_weight'])
+            if ew < 0 or ew > 10:
+                errors.append("end_weight must be between 0 and 10 (kg)")
+        except (ValueError, TypeError):
+            errors.append("end_weight must be a number")
+
+    # Validate week_age
+    if 'week_age' in data:
+        try:
+            wa = float(data['week_age'])
+            if wa < 0 or wa > 100:
+                errors.append("week_age must be between 0 and 100")
+        except (ValueError, TypeError):
+            errors.append("week_age must be a number")
+
+    # Validate fish_type
+    valid_fish_types = ["Nila Merah", "Patin", "Lele", "Bawal", "Gurame"]
+    if 'fish_type' not in data or not data['fish_type']:
+        errors.append("fish_type is required")
+    elif data['fish_type'] not in valid_fish_types:
+        errors.append(f"fish_type must be one of: {valid_fish_types}")
+
+    # Validate start_date and end_date
+    start_date = data.get('start_date')
+    end_date = data.get('end_date')
+    date_pattern = r'^\d{4}-\d{2}-\d{2}$'
+    if not start_date:
+        errors.append('start_date is required')
+    elif not re.match(date_pattern, str(start_date)):
+        errors.append('start_date must be in YYYY-MM-DD format')
+    if not end_date:
+        errors.append('end_date is required')
+    elif not re.match(date_pattern, str(end_date)):
+        errors.append('end_date must be in YYYY-MM-DD format')
+    # If both dates are valid, check logic
+    if start_date and end_date and re.match(date_pattern, str(start_date)) and re.match(date_pattern, str(end_date)):
+        try:
+            start_dt = datetime.strptime(str(start_date), '%Y-%m-%d')
+            end_dt = datetime.strptime(str(end_date), '%Y-%m-%d')
+            if start_dt >= end_dt:
+                errors.append('start_date must be before end_date')
+            elif (end_dt - start_dt).days > 365:
+                errors.append('Date range cannot exceed 365 days')
+        except Exception:
+            errors.append('Invalid date value for start_date or end_date')
+
     return {
         'valid': len(errors) == 0,
         'errors': errors

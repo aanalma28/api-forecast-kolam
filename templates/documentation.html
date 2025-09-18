@@ -189,15 +189,28 @@
                                 
                                 <h6>Request Body:</h6>
                                 <pre class="bg-secondary p-3 rounded"><code>{
-  "target_weight": 1.2,        // Target weight in kg  
-  "start_date": "2024-01-01",  // Start date of the sequence (ISO format), in this case first day of week
-  "end_date": "2024-01-07",    // End date of the sequence (ISO format), in this case last day of week
-  "initial_weight": 0.05,      // Initial weight, first day of week in kg
-  "start_weight": 0.22,        // Initial weight, first day of week in kg
-  "end_weight": 0.25,          // Final weight, last day of week in kg
-  "week_age": 1.0,             // Week age
-  "fish_type": "Nila",         // Nila Merah, Patin, Lele, Bawal, or Gurame  
+  "target_weight": 1.2,        // Target weight in kg (must be > 0, max depends on fish type: Nila Merah ≤ 0.25, Patin ≤ 0.6, Lele ≤ 0.15, Bawal ≤ 0.5, Gurame ≤ 0.3)
+  "start_date": "2024-01-01",  // Start date of the sequence (format: YYYY-MM-DD, must be before end_date)
+  "end_date": "2024-01-07",    // End date of the sequence (format: YYYY-MM-DD, max 365 days from start_date)
+  "initial_weight": 0.05,      // Initial weight, first day of week in kg (must be > 0 and < 0.15)
+  "start_weight": 0.22,        // Initial weight, first day of week in kg (≥ 0, ≤ 10)
+  "end_weight": 0.25,          // Final weight, last day of week in kg (≥ 0, ≤ 10)
+  "week_age": 1.0,             // Week age (≥ 0, ≤ 100)
+  "fish_type": "Nila"         // One of: Nila Merah, Patin, Lele, Bawal, Gurame
 }</code></pre>
+                                <div class="alert alert-secondary mt-2">
+                                    <strong>Input Constraints:</strong>
+                                    <ul class="mb-0">
+                                        <li><b>target_weight</b>: &gt; 0 and maximum depends on fish type:<br>
+                                            <span class="ms-3">Nila Merah ≤ 0.25, Patin ≤ 0.6, Lele ≤ 0.15, Bawal ≤ 0.5, Gurame ≤ 0.3 (kg)</span>
+                                        </li>
+                                        <li><b>initial_weight</b>: &gt; 0 and &lt; 0.15 (kg)</li>
+                                        <li><b>start_weight, end_weight</b>: ≥ 0 and ≤ 10 (kg)</li>
+                                        <li><b>week_age</b>: ≥ 0 and ≤ 100</li>
+                                        <li><b>start_date, end_date</b>: format YYYY-MM-DD, start_date must be before end_date, maximum range 365 days</li>
+                                        <li><b>fish_type</b>: One of: Nila Merah, Patin, Lele, Bawal, Gurame</li>
+                                    </ul>
+                                </div>
 
                                 <h6>Response:</h6>
                                 <pre class="bg-secondary p-3 rounded"><code>{
