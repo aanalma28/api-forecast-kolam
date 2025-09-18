@@ -158,8 +158,7 @@
     "is_trained": true,
     "input_shape": "(batch_size, 7, 19)",
     "output_type": "Sequential weight predictions until target",
-    "model_path": "data/fish_model.pkl",
-    "note": "This is a placeholder implementation. Replace with your actual trained model."
+    "model_path": "data/model_lstm.pkl",    
   },
   "timestamp": "2024-01-01T12:00:00.000Z"
 }</code></pre>
@@ -354,25 +353,22 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <h5>JavaScript (Fetch)</h5>
-                                    <pre class="bg-secondary p-3 rounded"><code>const response = await fetch('/api/forecast', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    target_weight: 1.2,
-    sequence: [
-      {
-        date: "2024-01-01",
-        fish_type: "Nila",
-        start_weight: 0.22,
-        avg_weight: 0.26,
-        week_age: 1.0
-      }
-      // ... more sequence data (minimum 7 days)
-    ]
-  })
+                                                                        <h5>JavaScript (Fetch)</h5>
+                                                                        <pre class="bg-secondary p-3 rounded"><code>const response = await fetch('/api/forecast', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        target_weight: 0.1,
+        start_date: "2024-01-01",
+        end_date: "2024-01-07",
+        initial_weight: 0.01,
+        start_weight: 0.01,
+        end_weight: 0.02,
+        week_age: 1.0,
+        fish_type: "Lele"
+    })
 });
 
 const data = await response.json();
@@ -383,18 +379,14 @@ console.log(`Days to reach target: ${data.data.summary.days_to_reach_target}`);<
                                     <pre class="bg-secondary p-3 rounded"><code>import requests
 
 fish_data = {
-    'target_weight': 1.2,
-    'sequence': [
-        {
-            'date': '2024-01-01',
-            'fish_type': 'Nila',
-            'start_weight': 0.22,
-            'avg_weight': 0.26,
-            'week_age': 1.0,
-            'pool_type': 'A1'
-        }
-        # ... more sequence data (minimum 7 days)
-    ]
+    'target_weight': 0.1,
+    'start_date': '2024-01-01',
+    'end_date': '2024-01-07',
+    'initial_weight': 0.01,
+    'start_weight': 0.01,
+    'end_weight': 0.02,
+    'week_age': 1.0,
+    'fish_type': 'Lele'
 }
 
 response = requests.post('/api/forecast', json=fish_data)
