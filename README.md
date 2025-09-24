@@ -187,6 +187,7 @@ tail -f gunicorn.log
 
 **Option B: Use Supervisor (Recommended for VPS/Server)**
 
+
 > **Note:** Supervisor requires you to manually create a configuration file for each project you want to manage. This can be less convenient for quick prototyping, but is very reliable for production.
 
 Install supervisor (if not installed):
@@ -217,6 +218,32 @@ sudo supervisorctl reread
 sudo supervisorctl update
 sudo supervisorctl start api-forecast-kolam
 ```
+
+## 🐧 Supervisor Option for Rocky Linux
+
+If you are using Rocky Linux, Supervisor configuration and management is slightly different:
+
+1. **Install Supervisor:**
+	```bash
+	sudo dnf install supervisor
+	```
+2. **Create config file in `/etc/supervisord.d/`:**
+	```bash
+	sudo nano /etc/supervisord.d/api-forecast-kolam.ini
+	```
+	Paste your program config (same as above, but use `.ini` extension).
+3. **Start and enable Supervisor:**
+	```bash
+	sudo systemctl enable supervisord
+	sudo systemctl start supervisord
+	```
+4. **Reload Supervisor after config changes:**
+	```bash
+	sudo supervisorctl reread
+	sudo supervisorctl update
+	```
+
+Monitor logs and control your app as usual. The config syntax and Gunicorn command remain the same.
 
 Monitor logs:
 ```bash
