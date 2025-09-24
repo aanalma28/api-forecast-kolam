@@ -249,6 +249,10 @@ Monitor logs:
 ```bash
 tail -f /var/log/api-forecast-kolam.out.log
 ```
+or
+```bash
+tail -f /var/log/api-forecast-kolam.err.log
+```
 
 ### 3. Stopping the Project
 
