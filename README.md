@@ -184,14 +184,22 @@ Check Gunicorn output (if you run it in foreground):
 tail -f gunicorn.log
 ```
 
+
 **Option B: Use Supervisor (Recommended for VPS/Server)**
+
+> **Note:** Supervisor requires you to manually create a configuration file for each project you want to manage. This can be less convenient for quick prototyping, but is very reliable for production.
 
 Install supervisor (if not installed):
 ```bash
 sudo apt-get install supervisor
 ```
 
-Create a config `/etc/supervisor/conf.d/api-forecast-kolam.conf`:
+
+Create a config file using nano:
+```bash
+sudo nano /etc/supervisor/conf.d/api-forecast-kolam.conf
+```
+Paste the following content and save:
 ```
 [program:api-forecast-kolam]
 command=/path/to/.venv/bin/gunicorn main:app --bind 0.0.0.0:5000 --workers 3
