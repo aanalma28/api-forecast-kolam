@@ -123,6 +123,116 @@ echo "✅ Project ready to run!"
 ### Dynamical Feature
 In this project, search commented with ```dynamical features``` keywords, that refer to some code or array should change based on different features like ```fish_type``` or ```pool_type```.
 
+---
+
+
+## ⚡️ Note: Switch Project to Production Mode
+
+Before running in production, make sure to:
+
+
+1. **Set environment variable to production:**
+	```bash
+	export FLASK_ENV=production
+	```
+2. **Disable debug mode in your code:**
+	```python
+	app.run(debug=False)
+	```
+	Or ensure you do not use `debug=True` anywhere.
+3. **Install and use a WSGI server (Gunicorn, uWSGI) instead of Flask's built-in server.**
+	- Install Gunicorn in your virtual environment:
+	  ```bash
+	  pip install gunicorn
+	  ```
+	- Run your app with Gunicorn:
+	  ```bash
+	  gunicorn main:app --bind 0.0.0.0:5000 --workers 3
+	  ```
+4. **(Recommended) Apply security best practices:**
+	- Enable HTTPS (use Nginx or Caddy as reverse proxy)
+	- Set up authentication and authorization for sensitive endpoints
+	- Configure CORS if accessed from web clients
+	- Use environment variables for secrets (never hardcode)
+	- Monitor logs and set up rate limiting if needed
+
+---
+
+## 🚀 Running, Monitoring, and Stopping in Production/VPS
+
+### 1. Running the Project in Production
+
+**Recommended: Use Gunicorn (WSGI server) for production deployments.**
+
+1. Activate your virtual environment:
+	```bash
+	source .venv/bin/activate
+	```
+2. Run the app with Gunicorn:
+	```bash
+	gunicorn main:app --bind 0.0.0.0:5000 --workers 3
+	```
+	- Replace `main:app` if your Flask app object is named differently or in another file.
+	- You can change the port and number of workers as needed.
+
+### 2. Monitoring the Project
+
+**Option A: Simple Log Monitoring**
+
+Check Gunicorn output (if you run it in foreground):
+```bash
+tail -f gunicorn.log
+```
+
+**Option B: Use Supervisor (Recommended for VPS/Server)**
+
+Install supervisor (if not installed):
+```bash
+sudo apt-get install supervisor
+```
+
+Create a config `/etc/supervisor/conf.d/api-forecast-kolam.conf`:
+```
+[program:api-forecast-kolam]
+command=/path/to/.venv/bin/gunicorn main:app --bind 0.0.0.0:5000 --workers 3
+directory=/path/to/api-forecast-kolam
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/api-forecast-kolam.err.log
+stdout_logfile=/var/log/api-forecast-kolam.out.log
+user=yourusername
+```
+
+Reload supervisor and start the app:
+```bash
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start api-forecast-kolam
+```
+
+Monitor logs:
+```bash
+tail -f /var/log/api-forecast-kolam.out.log
+```
+
+### 3. Stopping the Project
+
+**If using Supervisor:**
+```bash
+sudo supervisorctl stop api-forecast-kolam
+```
+
+**If running Gunicorn manually:**
+- Press `Ctrl+C` in the terminal running Gunicorn
+- Or kill the process:
+  ```bash
+  pkill gunicorn
+  ```
+
+---
+
+**Tip:** For public access, use Nginx as a reverse proxy to Gunicorn for better performance and HTTPS support.
+
 
 
 
